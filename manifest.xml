@@ -1,0 +1,11 @@
+<package>
+  <description brief="A package containing map to traversabilityMap converter tasks">
+  
+  </description>
+  <author>Janosch Machowinski/Janosch.Machowinski@dfki.de</author>
+  <license></license>
+  <url>http://</url>
+  <logo>http://</logo>
+  <depend package="base/cmake" />
+  <depend package="slam/orogen/envire" />
+</package>
