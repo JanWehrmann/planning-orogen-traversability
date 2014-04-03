@@ -23,6 +23,7 @@ Grassfire::~Grassfire()
 void Grassfire::body2MapCallback(const base::Time &time)
 {
     _body_center2mls_map.get(time, body2Map);
+    
     gotBody2Map = true;
 }
 
@@ -59,7 +60,6 @@ void Grassfire::updateHook()
         env->applyEvents(*binary_events);
         RTT::log(RTT::Info) << "Received new binary event" << RTT::endlog();
     } else {
-        RTT::log(RTT::Warning) << "Update hook is triggered but no new data available" << RTT::endlog();
         return;  
     }
 
