@@ -31,6 +31,8 @@ namespace traversability {
         
         void body2MapCallback(const base::Time& time);
 
+        double growthRadius;
+        
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         /** TaskContext constructor for Grassfire

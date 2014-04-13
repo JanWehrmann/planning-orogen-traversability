@@ -2,8 +2,10 @@
 
 #include "Grassfire.hpp"
 #include <envire/Orocos.hpp>
+#include <envire/operators/TraversabilityGrowClasses.hpp>
 
 using namespace traversability;
+using namespace envire;
 
 Grassfire::Grassfire(std::string const& name)
     : GrassfireBase(name), env(0)
@@ -38,6 +40,8 @@ bool Grassfire::configureHook()
     
     _body_center2mls_map.registerUpdateCallback(boost::bind(&Grassfire::body2MapCallback, this, _1));
     
+    growthRadius = _growTerrainRadius.get();
+    
     return true;
 }
 bool Grassfire::startHook()
@@ -50,6 +54,7 @@ bool Grassfire::startHook()
     
     return true;
 }
+
 void Grassfire::updateHook()
 {
     GrassfireBase::updateHook();
@@ -95,11 +100,33 @@ void Grassfire::updateHook()
     tr_op->setInput(mls_in);
     tr_op->setOutput(traversability);
 
+    
     if(gotBody2Map)
     {
         tr_op->setStartPosition(body2Map.translation());
         tr_op->updateAll();
 
+        if(growthRadius > 0.0)
+        {
+            TraversabilityGrowClasses *op = new TraversabilityGrowClasses();
+            op->setRadius(growthRadius);
+            env->attachItem(op);
+            
+            envire::TraversabilityGrid* traversabilityGr =
+                new envire::TraversabilityGrid(mls_in->getCellSizeX(), mls_in->getCellSizeY(), mls_in->getScaleX(), mls_in->getScaleY(),
+                        mls_in->getOffsetX(), mls_in->getOffsetY());
+            
+            env->attachItem(traversabilityGr, frame_node);
+                
+            op->setInput(traversability);
+            op->setOutput(traversabilityGr);
+
+            op->updateAll();
+            
+            env->detachItem(op);
+            env->detachItem(traversability);
+        }
+        
         env->detachItem(tr_op);
         env->detachItem(mls_in);
         
