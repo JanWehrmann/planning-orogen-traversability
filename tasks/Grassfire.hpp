@@ -26,12 +26,17 @@ namespace traversability {
 	friend class GrassfireBase;
     protected:
         envire::Environment *env;
+        envire::MLSGrid* mls_in;
         Eigen::Affine3d body2Map;
+        base::Time mapTime;
         bool gotBody2Map;
+        bool gotMap;
         
         void body2MapCallback(const base::Time& time);
 
         double growthRadius;
+        
+        void generateTraversability();
         
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
