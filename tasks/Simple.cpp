@@ -170,6 +170,7 @@ void Simple::updateHook()
     op_trav->setMaxStep(mls_geometry, "corrected_max_step");
     op_trav->setOutput(traversability, envire::TraversabilityGrid::TRAVERSABILITY);
 
+    mEnv->updateOperators();
     RTT::log(RTT::Debug) << "Traversability: use env save path for serialization" << RTT::endlog();
     if (!_env_save_path.get().empty())
     {
