@@ -118,6 +118,12 @@ void Grassfire::updateHook()
     if (_mls_map.readNewest(binary_events) == RTT::NewData) {
         RTT::log(RTT::Info) << "Received new binary event" << RTT::endlog();
         
+        //some components send empty events.
+        //this prevents us from segfaulting in
+        //this situation
+        if(binary_events->empty())
+            return;
+        
         //delete old map
         delete env;
         env = new envire::Environment;
