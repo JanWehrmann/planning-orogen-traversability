@@ -3,10 +3,11 @@ name "traversability"
 # version "0.1"
 
 import_types_from "base"
+import_types_from "envire"
+
+using_library "envire"
 import_types_from "envire/operators/SimpleTraversability.hpp"
 import_types_from "envire/operators/TraversabilityGrassfire.hpp"
-import_types_from "envire"
-using_library "envire"
 
 
 task_context "Simple" do
