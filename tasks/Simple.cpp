@@ -196,6 +196,9 @@ void Simple::updateHook()
         // These two have been kept alive by storing the return value of
         // detachItem
         mEnv->attachItem(traversability, frame_node);
+
+
+        addObjectsToMap(*traversability);
         
         if (!_env_save_path.get().empty())
         {
@@ -204,7 +207,7 @@ void Simple::updateHook()
             mEnv->serialize(path);
         }
     }
-
+    
     RTT::log(RTT::Debug) << "Traversability: export result" << RTT::endlog();
     // Do the export. Do it in a block so that the emitter gets deleted before
     // the environment is.

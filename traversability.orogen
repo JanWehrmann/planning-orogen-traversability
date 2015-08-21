@@ -9,10 +9,37 @@ using_library "envire"
 import_types_from "envire/operators/SimpleTraversability.hpp"
 import_types_from "envire/operators/TraversabilityGrassfire.hpp"
 
+task_context "Common" do
+    abstract
+    
+    input_port('mls_map', ro_ptr('std/vector</envire/BinaryEvent>')).
+        doc("Current map")
+
+    output_port('traversability_map', ro_ptr('std/vector</envire/BinaryEvent>')).
+        doc('Traversability map').
+        keep_last_written_value(false)
+
+    operation("addCircle").
+        doc("Adds a Circle with the griven parameters to the obstacle map. 
+        The traversability will be lowered to the given level. Spots with 
+        lower traversability inside the circle will not be modified").
+        argument("positionMap", "base::Vector3d").
+        argument("radius", "double").
+        argument("traversability", "double").
+        returns("int")
+
+    operation("removeObject").
+        doc("removes a object that was added using the addX operation.").
+        argument('objectId', 'int')
+        
+    port_driven
+end
 
 task_context "Simple" do
+    subclasses("Common")
     needs_configuration
 
+    
     property("env_name", "std/string", "/traversability/").
         doc "the envire prefix that should be used to create new maps"
 
@@ -31,17 +58,11 @@ task_context "Simple" do
     property("traversability_conf", "/envire/SimpleTraversabilityConfig").
         doc "configuration parameters for the traversability transformation"
 
-    input_port('mls_map', ro_ptr('std/vector</envire/BinaryEvent>')).
-        doc("Current map")
-
-    output_port('traversability_map', ro_ptr('std/vector</envire/BinaryEvent>')).
-        doc('Traversability map').
-        keep_last_written_value(false)
-
     port_driven
 end
 
 task_context "Grassfire" do
+    subclasses("Common")
     needs_configuration
 
     property("config", "/envire/TraversabilityGrassfire/Config").
@@ -50,17 +71,10 @@ task_context "Grassfire" do
     property("growTerrainRadius", "double", 0.0).
         doc "If this number is bigger than 0, all terrains will be grown by this value. Terrains with better traversabilty will be overwritten by terrains with with worse terrains"
 
-    input_port('mls_map', ro_ptr('std/vector</envire/BinaryEvent>')).
-        doc("Input map")
-
     transformer do
         transformation("body_center", "mls_map")
         max_latency(0.1)
     end
-
-    output_port('traversability_map', ro_ptr('std/vector</envire/BinaryEvent>')).
-	doc('Traversability map').
-        keep_last_written_value(false)
 
     port_driven
 end
