@@ -54,8 +54,18 @@ namespace traversability {
          */
         virtual void removeObject(boost::int32_t objectId);
 
-        void addObjectsToMap(envire::TraversabilityGrid &grid);
+        void addObjectsToMap(const envire::TraversabilityGrid &original, envire::TraversabilityGrid &modified);
         
+        bool receiveMap();
+        
+        void flushMap();
+        
+        envire::Environment* mEnv;
+
+        envire::MLSGrid* mls_in;
+        envire::TraversabilityGrid *originalGrid;
+        
+        base::Time lastUpdate;
     public:
         /** TaskContext constructor for Common
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.

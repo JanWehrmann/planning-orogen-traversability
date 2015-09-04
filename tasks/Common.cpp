@@ -1,16 +1,17 @@
 /* Generated from orogen/lib/orogen/templates/tasks/Task.cpp */
 
 #include "Common.hpp"
+#include <envire/Orocos.hpp>
 
 using namespace traversability;
 
 Common::Common(std::string const& name, TaskCore::TaskState initial_state)
-    : CommonBase(name, initial_state), nextObjectId(0)
+    : CommonBase(name, initial_state), nextObjectId(0), mEnv(0)
 {
 }
 
 Common::Common(std::string const& name, RTT::ExecutionEngine* engine, TaskCore::TaskState initial_state)
-    : CommonBase(name, engine, initial_state), nextObjectId(0)
+    : CommonBase(name, engine, initial_state), nextObjectId(0), mEnv(0)
 {
 }
 
@@ -46,8 +47,11 @@ void Common::removeObject(int32_t objectId)
     objects.erase(it);
 }
 
-void Common::addObjectsToMap(envire::TraversabilityGrid& grid)
+void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire::TraversabilityGrid &grid)
 {
+    //copy grid
+    grid = original;
+    
     std::cout << "addObjectsToMap begin" << std::endl;
     for(std::map<int, ObjectDescriptor *>::iterator it = objects.begin(); it != objects.end(); it++)
     {
@@ -92,6 +96,93 @@ void Common::addObjectsToMap(envire::TraversabilityGrid& grid)
         std::cout << "Added Object at " << it->second->position.transpose() << std::endl;
     }
     std::cout << "addObjectsToMap end" << std::endl;
+}
+
+bool Common::receiveMap()
+{
+    std::cout << "Common::receiveMap()" << std::endl;
+    bool gotNewMap = false;
+    
+    // Read map data. Don't do anything until we get a new map
+    RTT::extras::ReadOnlyPointer<envire::BinaryEvents> binary_events;
+    while (_mls_map.read(binary_events) == RTT::NewData) {
+        mEnv->applyEvents(*binary_events);
+        if(binary_events->size())
+            lastUpdate = (*binary_events)[0].time;
+        gotNewMap = true;
+        RTT::log(RTT::Info) << "Received new binary event" << RTT::endlog();
+    }
+
+    std::cout << "Common::receiveMap() ..." << std::endl;
+
+    if(!gotNewMap) {
+        RTT::log(RTT::Warning) << "Update hook is triggered but no new data available" << RTT::endlog();
+        return false;
+    }
+    
+    std::vector<envire::MLSGrid*> mls_maps = mEnv->getItems<envire::MLSGrid>();
+    if(!mls_maps.size()) {
+        RTT::log(RTT::Warning) << "Environment does not contain any MLS grids" << RTT::endlog();
+        return false;
+    }
+    
+    if(mls_maps.size()) {
+        std::stringstream ss;
+        ss << "Received MLS map(s): " << std::endl;
+        std::vector<envire::MLSGrid*>::iterator it = mls_maps.begin();
+        for(int i=0; it != mls_maps.end(); ++it, ++i)
+        {
+            ss << i << ": "<< (*it)->getUniqueId() << std::endl;
+        }
+        RTT::log(RTT::Info) << ss.str() << RTT::endlog();
+    } else {
+        RTT::log(RTT::Warning) << "Environment does not contain any MLS grids" << RTT::endlog();
+    }
+
+    if(mls_maps.size() != 1) {
+        RTT::log(RTT::Warning) << "Environment does contain to much MLS grids (should be only one)" << RTT::endlog();
+        envire::MLSGrid* mls_in = mEnv->getItem< envire::MLSGrid >(_mls_id.get()).get();
+        if(!mls_in)
+            return false;
+    }
+    else
+    {
+        mls_in = mls_maps.front();
+    }
+
+    return true;
+}
+
+void Common::flushMap()
+{
+    std::cout << "Flushing map " << std::endl;
+    
+    envire::Transform transform =
+        mEnv->relativeTransform(mls_in->getFrameNode(), mEnv->getRootNode());
+
+    envire::Environment out;
+    out.setEnvironmentPrefix(_env_name.get());
+    envire::FrameNode* frame_node = new envire::FrameNode(transform);
+    out.attachItem(frame_node);
+    out.getRootNode()->addChild(frame_node);
+    
+    envire::TraversabilityGrid *modifiedGrid = new envire::TraversabilityGrid();
+    out.attachItem(modifiedGrid, frame_node);
+    
+    addObjectsToMap(*originalGrid, *modifiedGrid);
+    
+    if (!_env_save_path.get().empty())
+    {
+        std::string path = _env_save_path.get();
+        path += "/reduced";
+        out.serialize(path);
+    }
+    
+    envire::OrocosEmitter emitter(&out, _traversability_map);
+    emitter.setTime(lastUpdate);
+    emitter.flush();
+
+    std::cout << "Flushing map DONE" << std::endl;
 }
 
 

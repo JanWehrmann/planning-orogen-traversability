@@ -104,7 +104,7 @@ void Grassfire::generateTraversability()
     env->detachItem(tr_op);
     env->detachItem(mls_in);
     
-    addObjectsToMap(*traversability);
+//     addObjectsToMap(*traversability);
     
     envire::OrocosEmitter emitter(env, _traversability_map);
     emitter.setTime(mapTime);

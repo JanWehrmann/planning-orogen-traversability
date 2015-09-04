@@ -32,8 +32,6 @@ namespace traversability {
     {
 	friend class SimpleBase;
     protected:
-
-        envire::Environment* mEnv;
         int seq_number;
 
         size_t mMaxExtent;

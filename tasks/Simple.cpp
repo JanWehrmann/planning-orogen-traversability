@@ -5,12 +5,12 @@
 using namespace traversability;
 
 Simple::Simple(std::string const& name)
-    : SimpleBase(name), mEnv(0), seq_number(0)
+    : SimpleBase(name), seq_number(0)
 {
 }
 
 Simple::Simple(std::string const& name, RTT::ExecutionEngine* engine)
-    : SimpleBase(name, engine), mEnv(0), seq_number(0)
+    : SimpleBase(name, engine), seq_number(0)
 {
 }
 
@@ -40,6 +40,8 @@ bool Simple::startHook()
     if (! SimpleBase::startHook())
         return false;
     
+    originalGrid = NULL;
+    
     delete mEnv;
     mEnv = new envire::Environment;
     mEnv->setEnvironmentPrefix(_env_name.get());
@@ -48,59 +50,42 @@ bool Simple::startHook()
 }
 void Simple::updateHook()
 {
+    std::cout << "Triggered " << std::endl;
     SimpleBase::updateHook();
     
+    bool gotNewMap = receiveMap();
     
-    // Read map data. Don't do anything until we get a new map
-    envire::OrocosEmitter::Ptr binary_events;
-    if (_mls_map.read(binary_events) == RTT::NewData) {
-        mEnv->applyEvents(*binary_events);
-        RTT::log(RTT::Info) << "Received new binary event" << RTT::endlog();
-    } else {
-        RTT::log(RTT::Warning) << "Update hook is triggered but no new data available" << RTT::endlog();
-        return;  
-    }
-    
-    // Tries to extract the MLS with the specified ID. If that is not possible, the first
-    // MLS will be used (if it is the only contained MLS).
-    // Fails if no MLS is available or the ID does not match and there are more than one MLS.
-    std::vector<envire::MLSGrid*> mls_maps = mEnv->getItems<envire::MLSGrid>();
-    if(mls_maps.size()) {
-        std::stringstream ss;
-        ss << "Received MLS map(s): " << std::endl;
-        std::vector<envire::MLSGrid*>::iterator it = mls_maps.begin();
-        for(int i=0; it != mls_maps.end(); ++it, ++i)
-        {
-            ss << i << ": "<< (*it)->getUniqueId() << std::endl;
-        }
-        RTT::log(RTT::Info) << ss.str() << RTT::endlog();
-    } else {
-        RTT::log(RTT::Warning) << "Environment does not contain any MLS grids" << RTT::endlog();
+    if(!gotNewMap)
+    {
+        std::cout << "No map !" << std::endl;
+        if(originalGrid)
+            flushMap();
+        
         return;
     }
-
-    envire::MLSGrid* mls_in = mEnv->getItem< envire::MLSGrid >(_mls_id.get()).get();
-    if (! mls_in) {
-        RTT::log(RTT::Info) << "No mls found with id " <<  _mls_id.get() << RTT::endlog();
-        if(mls_maps.size() > 1) {
-            RTT::log(RTT::Warning) << "The environment contains more than one MLS map, please specify the map ID" << RTT::endlog();
-            return;
-        } else {
-            RTT::log(RTT::Info) << "The first MLS map will be used" << RTT::endlog();
-            std::vector<envire::MLSGrid*>::iterator it = mls_maps.begin();
-            mls_in = mEnv->getItem< envire::MLSGrid >((*it)->getUniqueId()).get();
-            if (! mls_in) {
-                RTT::log(RTT::Warning) << "MLS with ID " << (*it)->getUniqueId() << 
-                        " could not be extracted" << RTT::endlog();
-                return; 
-            }
-        }
-    }
     
+    std::cout << "Got map" << std::endl;
+
+    envire::FrameNode* frame_node = mls_in->getFrameNode();
+    envire::Transform transform =
+            mEnv->relativeTransform(frame_node, mEnv->getRootNode());
+
+    envire::EnvironmentItem::Ptr mlsPtr = mEnv->detachItem(mls_in);
+
+    delete mEnv;
+    mEnv = new envire::Environment;
+    mEnv->setEnvironmentPrefix(_env_name.get());
+    
+    frame_node = new envire::FrameNode(transform);
+    mEnv->getRootNode()->addChild(frame_node);
+    
+    mEnv->attachItem(dynamic_cast<envire::CartesianMap *>(mlsPtr.get()), frame_node);
+    mlsPtr.reset();
+
+    frame_node = mls_in->getFrameNode();
     
     RTT::log(RTT::Info) << "Got a new mls map with id " << mls_in->getUniqueId() << RTT::endlog();
 
-    envire::FrameNode* frame_node = mls_in->getFrameNode();
 
     // get the extents from the map, and extend it with the extents provided by
     // the parameters (if any)
@@ -178,53 +163,12 @@ void Simple::updateHook()
         path += "/complete";
         mEnv->serialize(path);
     }
-
-    RTT::log(RTT::Debug) << "Traversability: detach result" << RTT::endlog();
-    // Detach the result, add it to a new environment and dump that environment
-    // on the port
-    {
-        envire::Transform transform =
-            mEnv->relativeTransform(frame_node, mEnv->getRootNode());
-
-        envire::EnvironmentItem::Ptr map = mEnv->detachItem(traversability);
-        envire::EnvironmentItem::Ptr geometry = mEnv->detachItem(mls_geometry);
-        delete mEnv;
-        mEnv = new envire::Environment;
-        mEnv->setEnvironmentPrefix(_env_name.get());
-        envire::FrameNode* frame_node = new envire::FrameNode(transform);
-        mEnv->getRootNode()->addChild(frame_node);
-        // These two have been kept alive by storing the return value of
-        // detachItem
-        mEnv->attachItem(traversability, frame_node);
-
-
-        addObjectsToMap(*traversability);
-        
-        if (!_env_save_path.get().empty())
-        {
-            std::string path = _env_save_path.get();
-            path += "/reduced";
-            mEnv->serialize(path);
-        }
-    }
     
-    RTT::log(RTT::Debug) << "Traversability: export result" << RTT::endlog();
-    // Do the export. Do it in a block so that the emitter gets deleted before
-    // the environment is.
-    {
-        envire::OrocosEmitter emitter(mEnv, _traversability_map);
-        assert(!binary_events->empty());
-        emitter.setTime((*binary_events)[0].time);
-        emitter.flush();
-            
-    }
-
-    RTT::log(RTT::Debug) << "Traversability: cleanup for next update" << RTT::endlog();
-    // Finally, reinitialise the environment for the next update
-    delete mEnv;
-    mEnv = new envire::Environment;
-    mEnv->setEnvironmentPrefix(_env_name.get());
+    originalGrid = traversability;
+    
+    flushMap();
 }
+
 void Simple::errorHook()
 {
     SimpleBase::errorHook();

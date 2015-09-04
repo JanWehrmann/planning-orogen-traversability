@@ -12,6 +12,15 @@ import_types_from "envire/operators/TraversabilityGrassfire.hpp"
 task_context "Common" do
     abstract
     
+    property("mls_id", "std/string", "/slam/mls").
+        doc "the map ID of the input MLS map. This value is only used, if more than one map is received"
+
+    property("env_name", "std/string", "/traversability/").
+        doc "the envire prefix that should be used to create new maps"
+
+    property("env_save_path", "std/string").
+        doc "if set to a non-empty string, save each generated environment under env_save_path/<seq number>/"
+
     input_port('mls_map', ro_ptr('std/vector</envire/BinaryEvent>')).
         doc("Current map")
 
@@ -40,20 +49,11 @@ task_context "Simple" do
     needs_configuration
 
     
-    property("env_name", "std/string", "/traversability/").
-        doc "the envire prefix that should be used to create new maps"
-
     property("map_extents", "/std/vector<base/Vector2d>").
         doc "If necessary the size of the input map will be extended, such that the output always contains the provided points in world coordinates."
 
     property("map_max_extent", "/int", 1000).
         doc "Number of maximum patches per dimension x/y."
-
-    property("env_save_path", "std/string").
-        doc "if set to a non-empty string, save each generated environment under env_save_path/<seq number>/"
-
-    property("mls_id", "std/string", "/slam/mls").
-        doc "the map ID of the input MLS map. The terrain type information is expected to be encoded as RGB value on the MLS"
 
     property("traversability_conf", "/envire/SimpleTraversabilityConfig").
         doc "configuration parameters for the traversability transformation"
