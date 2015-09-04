@@ -31,6 +31,9 @@ boost::int32_t Common::addCircle(::base::Vector3d const & positionMap, double ra
     
     objects.insert(std::make_pair(id, c));
     
+    //inform activity, that update hook should be called
+    trigger();
+    
     return id;
 }
 
@@ -45,6 +48,9 @@ void Common::removeObject(int32_t objectId)
     
     delete it->second;
     objects.erase(it);
+
+    //inform activity, that update hook should be called
+    trigger();
 }
 
 void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire::TraversabilityGrid &grid)
