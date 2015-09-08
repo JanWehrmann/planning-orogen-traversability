@@ -64,7 +64,6 @@ void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire:
     //copy grid
     grid = original;
     
-    std::cout << "addObjectsToMap begin" << std::endl;
     for(std::map<int, ObjectDescriptor *>::iterator it = objects.begin(); it != objects.end(); it++)
     {
         size_t x, y;
@@ -73,7 +72,6 @@ void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire:
 
         envire::TraversabilityClass klass(it->second->traversability);
         int klassNr = grid.getTraversabilityClasses().size() + 1;
-        std::cout << "New Klass Nr is " << klassNr << std::endl;
         grid.setTraversabilityClass(klassNr, klass);
         
         CircleDescriptor *c = dynamic_cast<CircleDescriptor *>(it->second);
@@ -88,15 +86,10 @@ void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire:
                     if(!grid.inGrid(xi, yi))
                         continue;
                     
-                    std::cout << "In Grid " << xi << " " << yi << std::endl;
-                    
                     if(Eigen::Vector2i(xi - x, yi - y).norm() < steps)
                     {
-                        std::cout << "In Radius " << xi << " " << yi << std::endl;
-                        
                         if(grid.getTraversability(xi, yi).getDrivability() > klass.getDrivability())
                         {
-                            std::cout << "Reduced traversability" << std::endl;
                             grid.setTraversabilityAndProbability(klassNr, 1.0, xi, yi);
                         }
                            
@@ -104,10 +97,7 @@ void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire:
                 }
             }
         }
-        
-        std::cout << "Added Object at " << it->second->position.transpose() << std::endl;
     }
-    std::cout << "addObjectsToMap end" << std::endl;
 }
 
 bool Common::receiveMap()
