@@ -49,6 +49,12 @@ void Common::removeObject(int32_t objectId)
     delete it->second;
     objects.erase(it);
 
+}
+
+void Common::removeAllObject()
+{
+    objects.clear();
+
     //inform activity, that update hook should be called
     trigger();
 }

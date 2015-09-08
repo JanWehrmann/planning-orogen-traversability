@@ -41,6 +41,9 @@ task_context "Common" do
         doc("removes a object that was added using the addX operation.").
         argument('objectId', 'int')
         
+    operation("removeAllObject").
+        doc("removes all object that was added using the addX operation.")
+        
     port_driven
 end
 

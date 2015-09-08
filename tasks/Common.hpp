@@ -54,6 +54,8 @@ namespace traversability {
          */
         virtual void removeObject(boost::int32_t objectId);
 
+        virtual void removeAllObject();
+        
         void addObjectsToMap(const envire::TraversabilityGrid &original, envire::TraversabilityGrid &modified);
         
         bool receiveMap();
