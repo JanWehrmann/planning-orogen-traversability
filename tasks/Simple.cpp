@@ -50,22 +50,18 @@ bool Simple::startHook()
 }
 void Simple::updateHook()
 {
-    std::cout << "Triggered " << std::endl;
     SimpleBase::updateHook();
     
     bool gotNewMap = receiveMap();
     
     if(!gotNewMap)
     {
-        std::cout << "No map !" << std::endl;
         if(originalGrid)
             flushMap();
         
         return;
     }
     
-    std::cout << "Got map" << std::endl;
-
     envire::FrameNode* frame_node = mls_in->getFrameNode();
     envire::Transform transform =
             mEnv->relativeTransform(frame_node, mEnv->getRootNode());
