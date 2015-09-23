@@ -4,6 +4,8 @@
 #define TRAVERSABILITY_COMMON_TASK_HPP
 
 #include "traversability/CommonBase.hpp"
+#include <envire/maps/TraversabilityGrid.hpp>
+#include <envire/maps/MLSGrid.hpp>
 
 namespace traversability {
 
