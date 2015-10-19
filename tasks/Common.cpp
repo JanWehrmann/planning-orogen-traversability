@@ -85,8 +85,8 @@ void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire:
                 {
                     if(!grid.inGrid(xi, yi))
                         continue;
-                    
-                    if(Eigen::Vector2i(xi - x, yi - y).norm() <= steps )
+
+                    if(Eigen::Vector2i(xi - x, yi - y).cast<float>().norm() <= steps )
                     {
                         if(grid.getTraversability(xi, yi).getDrivability() > klass.getDrivability())
                         {
