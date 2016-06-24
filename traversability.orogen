@@ -57,6 +57,9 @@ task_context "Simple" do
 
     property("map_max_extent", "/int", 1000).
         doc "Number of maximum patches per dimension x/y."
+        
+   property("required_measurements_per_patch", "/int", 0).
+        doc "Number of required points per patch, can be used to remove mismeasurements (>0)"
 
     property("traversability_conf", "/envire/SimpleTraversabilityConfig").
         doc "configuration parameters for the traversability transformation"
