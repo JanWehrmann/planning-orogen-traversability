@@ -136,6 +136,7 @@ void Simple::updateHook()
     mEnv->attachItem(mls_geometry, frame_node);
     envire::MLSSlope* op_mls_slope = new envire::MLSSlope;
     op_mls_slope->setRequiredMeasurementsPerPatch(_required_measurements_per_patch.get());
+    op_mls_slope->setWindowSize(_window_size.get());
     mEnv->attachItem(op_mls_slope);
     op_mls_slope->setInput(mls);
     op_mls_slope->setOutput(mls_geometry);
