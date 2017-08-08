@@ -61,17 +61,14 @@ void Simple::updateHook()
 {
     SimpleBase::updateHook();
     
-    while(_pose.read(mCurrentPose) == RTT::NewData)
+    while(mRobotDescriptor && _pose.read(mCurrentPose) == RTT::NewData)
     {
         mRobotDescriptor->position = mCurrentPose.position;
     }
     bool gotNewMap = receiveMap();
     
     if(!gotNewMap)
-    {
-        if(originalGrid)
-            flushMap();
-        
+    {        
         return;
     }
     
