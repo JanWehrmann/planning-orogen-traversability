@@ -35,7 +35,8 @@ namespace traversability {
         int seq_number;
 
         size_t mMaxExtent;
-
+        base::samples::RigidBodyState mCurrentPose;
+        RobotDescriptor* mRobotDescriptor;
 
 
     public:

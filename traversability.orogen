@@ -51,6 +51,8 @@ task_context "Simple" do
     subclasses("Common")
     needs_configuration
 
+    input_port("pose", "/base/samples/RigidBodyState").
+        doc "Current pose of the robot in map."
     
     property("map_extents", "/std/vector<base/Vector2d>").
         doc "If necessary the size of the input map will be extended, such that the output always contains the provided points in world coordinates."
@@ -66,6 +68,9 @@ task_context "Simple" do
 
     property("traversability_conf", "/envire/SimpleTraversabilityConfig").
         doc "configuration parameters for the traversability transformation"
+
+    property("robot_radius", "double", 0).
+        doc "Radius of the robot that is used to clear out current position in map."
 
     port_driven
 end

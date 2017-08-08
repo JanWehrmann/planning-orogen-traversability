@@ -30,8 +30,17 @@ bool Simple::configureHook()
         return false;
     
     mMaxExtent = _map_max_extent.get();
+    mRobotDescriptor = NULL;
+    if(_pose.connected())
+    {
+        mRobotDescriptor = new RobotDescriptor();
+        mRobotDescriptor->radius = _robot_radius.get();
+        mRobotDescriptor->traversability = 1.0;
 
-    return true;
+        int id = nextObjectId;
+        nextObjectId++;
+        objects.insert(std::make_pair(id, mRobotDescriptor));
+    }
 
     return true;
 }
@@ -52,6 +61,10 @@ void Simple::updateHook()
 {
     SimpleBase::updateHook();
     
+    while(_pose.read(mCurrentPose) == RTT::NewData)
+    {
+        mRobotDescriptor->position = mCurrentPose.position;
+    }
     bool gotNewMap = receiveMap();
     
     if(!gotNewMap)

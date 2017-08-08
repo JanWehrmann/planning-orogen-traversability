@@ -42,6 +42,12 @@ namespace traversability {
             double radius;
         };
         
+        class RobotDescriptor : public ObjectDescriptor
+        {
+        public:
+            double radius;
+        };
+		
         int nextObjectId;
         
         std::map<int, ObjectDescriptor *> objects;

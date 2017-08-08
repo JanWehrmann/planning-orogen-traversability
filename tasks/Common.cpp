@@ -97,6 +97,26 @@ void Common::addObjectsToMap(const envire::TraversabilityGrid &original, envire:
                 }
             }
         }
+		
+        RobotDescriptor *r = dynamic_cast<RobotDescriptor *>(it->second);
+        if(r)
+        {
+            //TODO move into envire baseGrid
+            int steps = r->radius / grid.getScaleX();
+            for(int xi = x - steps; xi <= (int)(x + steps); xi++)
+            {
+                for(int yi = y - steps; yi <= (int)(y + steps); yi++)
+                {
+                    if(!grid.inGrid(xi, yi))
+                        continue;
+
+                    if(Eigen::Vector2i(xi - x, yi - y).cast<float>().norm() <= steps )
+                    {
+                        grid.setTraversabilityAndProbability(klassNr, 1.0, xi, yi);
+                    }
+                }
+            }
+        }
     }
 }
 
