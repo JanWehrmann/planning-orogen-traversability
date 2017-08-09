@@ -67,11 +67,7 @@ void Common::setTraversability(::base::Vector3d const & positionMap, double radi
 
             if(Eigen::Vector2i(xi - x, yi - y).cast<float>().norm() <= steps )
             {
-                if(originalGrid->getTraversability(xi, yi).getDrivability() > klass.getDrivability())
-                {
-                    originalGrid->setTraversabilityAndProbability(klassNr, 1.0, xi, yi);
-                }
-                   
+                originalGrid->setTraversabilityAndProbability(klassNr, 1.0, xi, yi);                   
             }
         }
     }
