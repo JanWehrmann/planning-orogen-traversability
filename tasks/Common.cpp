@@ -37,6 +37,39 @@ boost::int32_t Common::addCircle(::base::Vector3d const & positionMap, double ra
     return id;
 }
 
+void Common::setTraversability(::base::Vector3d const & positionMap, double radius, double traversability)
+{
+    if(!originalGrid)
+        return;
+
+    size_t x, y;
+    if(!originalGrid->toGrid(positionMap, x, y, originalGrid->getEnvironment()->getRootNode()))
+        return;
+
+    envire::TraversabilityClass klass(traversability);
+    int klassNr = originalGrid->getTraversabilityClasses().size() + 1;
+    originalGrid->setTraversabilityClass(klassNr, klass);
+    
+    int steps = radius / originalGrid->getScaleX();
+    for(int xi = x - steps; xi <= (int)(x + steps); xi++)
+    {
+        for(int yi = y - steps; yi <= (int)(y + steps); yi++)
+        {
+            if(!originalGrid->inGrid(xi, yi))
+                continue;
+
+            if(Eigen::Vector2i(xi - x, yi - y).cast<float>().norm() <= steps )
+            {
+                if(originalGrid->getTraversability(xi, yi).getDrivability() > klass.getDrivability())
+                {
+                    originalGrid->setTraversabilityAndProbability(klassNr, 1.0, xi, yi);
+                }
+                   
+            }
+        }
+    }
+}
+
 void Common::removeObject(int32_t objectId)
 {
     std::map<int, ObjectDescriptor *>::iterator it = objects.find(objectId);
