@@ -64,7 +64,9 @@ namespace traversability {
 
         virtual void removeAllObject();
         
-        virtual void setTraversability(::base::Vector3d const & positionMap, double radius, double traversability);
+        /* Sets traversability in a circular area once. Effect will be undone with the next received MLS.
+         */
+        virtual bool setTraversability(double x, double y, double radius, double traversability);
 
         void addObjectsToMap(const envire::TraversabilityGrid &original, envire::TraversabilityGrid &modified);
         

@@ -46,9 +46,11 @@ task_context "Common" do
  
     operation("setTraversability").
         doc('Sets traversability in a circular area once. Effect will be undone with the next received MLS.').
-        argument("positionMap", "base::Vector3d").
+        argument("x", "/double").
+        argument("y", "/double").
         argument("radius", "double").
-        argument("traversability", "double")
+        argument("traversability", "double").
+        returns("bool")
 
     port_driven
 end

@@ -37,22 +37,29 @@ boost::int32_t Common::addCircle(::base::Vector3d const & positionMap, double ra
     return id;
 }
 
-void Common::setTraversability(::base::Vector3d const & positionMap, double radius, double traversability)
+bool Common::setTraversability(double _x, double _y, double radius, double traversability)
 {
+    std::cout << "[setTraversability] Called with position: (" << _x << "," << _y << ") / radius: "
+        << radius << " / traversability: " << traversability << std::endl;
+
     if(!originalGrid)
     {
         std::cout << "[setTraversability] No map available yet!" << std::endl;
-        return;
+        return false;
     }
+
+    base::Vector3d positionMap;
+    positionMap.x() = _x;
+    positionMap.y() = _y;
+    positionMap.z() = 0.0;
 
     size_t x, y;
     if(!originalGrid->toGrid(positionMap, x, y, originalGrid->getEnvironment()->getRootNode()))
     {
         std::cout << "[setTraversability] Point not in map!" << std::endl;
-        return;
+        return false;
 	}
-    std::cout << "[setTraversability] Setting traversability and resending map." << std::endl;
-	
+
     envire::TraversabilityClass klass(traversability);
     int klassNr = originalGrid->getTraversabilityClasses().size() + 1;
     originalGrid->setTraversabilityClass(klassNr, klass);
@@ -71,6 +78,8 @@ void Common::setTraversability(::base::Vector3d const & positionMap, double radi
             }
         }
     }
+    flushMap();
+    return true;
 }
 
 void Common::removeObject(int32_t objectId)
