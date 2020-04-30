@@ -8,6 +8,6 @@
   <url>http://</url>
   <logo>http://</logo>
   <depend package="base/cmake" />
-  <depend package="slam/orogen/envire" />
+  <depend package="envire/orogen/envire_maps" />
   <depend package="drivers/orogen/transformer" />
 </package>

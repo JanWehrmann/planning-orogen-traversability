@@ -4,13 +4,9 @@
 #define TRAVERSABILITY_SIMPLE_TASK_HPP
 
 #include "traversability/SimpleBase.hpp"
-#include <envire/operators/SimpleTraversability.hpp>
-#include <envire/operators/MLSSlope.hpp>
-#include <envire/maps/MLSGrid.hpp>
-#include <envire/maps/Grids.hpp>
-#include <envire/operators/MergeMLS.hpp>
-#include <envire/operators/ClassGridProjection.hpp>
-#include <envire/Orocos.hpp>
+#include <maps/tools/SimpleTraversability.hpp>
+#include <maps/tools/MLSToSlopes.hpp>
+#include <maps/grid/MLSMap.hpp>
 
 namespace traversability {
 
@@ -31,13 +27,6 @@ namespace traversability {
     class Simple : public SimpleBase
     {
 	friend class SimpleBase;
-    protected:
-        int seq_number;
-
-        size_t mMaxExtent;
-
-
-
     public:
         /** TaskContext constructor for Simple
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.

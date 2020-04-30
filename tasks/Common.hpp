@@ -4,8 +4,9 @@
 #define TRAVERSABILITY_COMMON_TASK_HPP
 
 #include "traversability/CommonBase.hpp"
-#include <envire/maps/TraversabilityGrid.hpp>
-#include <envire/maps/MLSGrid.hpp>
+#include <maps/grid/TraversabilityGrid.hpp>
+#include <maps/grid/MLSMap.hpp>
+#include <envire_core/items/SpatioTemporal.hpp>
 
 namespace traversability {
 
@@ -27,49 +28,19 @@ namespace traversability {
     {
 	friend class CommonBase;
     protected:
-
-        class ObjectDescriptor
-        {
-        public:
-            virtual ~ObjectDescriptor() {};
-            base::Vector3d position;
-            double traversability;
-        };
-        
-        class CircleDescriptor : public ObjectDescriptor
-        {
-        public:
-            double radius;
-        };
-        
-        int nextObjectId;
-        
-        std::map<int, ObjectDescriptor *> objects;
-        
-        /* Adds a Circle with the griven parameters to the obstacle map. 
-                The traversability will be lowered to the given level. Spots with 
-                lower traversability inside the circle will not be modified
+        /**
+         * @brief Checks for a new input map. If a new map is found it is written to @mls_in .
+         * @returns true if a new map was found.
          */
-        virtual boost::int32_t addCircle(::base::Vector3d const & positionMap, double radius, double traversability);
-
-        /* removes a object that was added using the addX operation.
-         */
-        virtual void removeObject(boost::int32_t objectId);
-
-        virtual void removeAllObject();
-        
-        void addObjectsToMap(const envire::TraversabilityGrid &original, envire::TraversabilityGrid &modified);
-        
         bool receiveMap();
-        
-        void flushMap();
-        
-        envire::Environment* mEnv;
 
-        envire::MLSGrid* mls_in;
-        envire::TraversabilityGrid *originalGrid;
-        
-        base::Time lastUpdate;
+        /**
+         * @brief Writes the given map to the output port.
+         * @param map : map to be written.
+         */
+        void flushMap(const maps::grid::TraversabilityGrid& map);
+
+        envire::core::SpatioTemporal<maps::grid::MLSMapKalman> mls_in;
     public:
         /** TaskContext constructor for Common
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.

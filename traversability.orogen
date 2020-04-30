@@ -3,87 +3,51 @@ name "traversability"
 # version "0.1"
 
 import_types_from "base"
-import_types_from "envire"
+import_types_from "envire_maps"
 
-using_library "envire"
-import_types_from "envire/operators/SimpleTraversability.hpp"
-import_types_from "envire/operators/TraversabilityGrassfire.hpp"
+using_library "envire_maps"
+import_types_from "maps/tools/SimpleTraversability.hpp"
+import_types_from "maps/tools/TraversabilityGrassfireConfig.hpp"
 
 task_context "Common" do
     abstract
-    
-    property("mls_id", "std/string", "/slam/mls").
-        doc "the map ID of the input MLS map. This value is only used, if more than one map is received"
 
-    property("env_name", "std/string", "/traversability/").
-        doc "the envire prefix that should be used to create new maps"
-
-    property("env_save_path", "std/string").
-        doc "if set to a non-empty string, save each generated environment under env_save_path/<seq number>/"
-
-    input_port('mls_map', ro_ptr('std/vector</envire/BinaryEvent>')).
+    input_port('mls_map', spatio_temporal('/maps/grid/MLSMapKalman')).
         doc("Current map")
 
-    output_port('traversability_map', ro_ptr('std/vector</envire/BinaryEvent>')).
+    output_port('traversability_map', spatio_temporal('/maps/grid/TraversabilityGrid')).
         doc('Traversability map').
         keep_last_written_value(false)
-
-    operation("addCircle").
-        doc("Adds a Circle with the griven parameters to the obstacle map. 
-        The traversability will be lowered to the given level. Spots with 
-        lower traversability inside the circle will not be modified").
-        argument("positionMap", "base::Vector3d").
-        argument("radius", "double").
-        argument("traversability", "double").
-        returns("int")
-
-    operation("removeObject").
-        doc("removes a object that was added using the addX operation.").
-        argument('objectId', 'int')
-        
-    operation("removeAllObject").
-        doc("removes all object that was added using the addX operation.")
-        
     port_driven
 end
 
-task_context "Simple" do
-    subclasses("Common")
+task_context "Simple", subclasses: "Common" do
     needs_configuration
 
-    
-    property("map_extents", "/std/vector<base/Vector2d>").
-        doc "If necessary the size of the input map will be extended, such that the output always contains the provided points in world coordinates."
-
-    property("map_max_extent", "/int", 1000).
-        doc "Number of maximum patches per dimension x/y."
-        
-    property("required_measurements_per_patch", "/int", 0).
-        doc "Number of required points per patch, can be used to remove mismeasurements (>0)"
-		
     property("window_size", "/int", 1).
-        doc "Size of the window used to calculate traversability of a cell."
+        doc("Size of the window used to calculate the slope of a cell.
+             A window_size of 1 means that the slope of a cell will be calculated using information
+             of 1 cell in each direction. This might also grow obstacles, especially around big
+             height changes.")
 
-    property("traversability_conf", "/envire/SimpleTraversabilityConfig").
-        doc "configuration parameters for the traversability transformation"
+    property("traversability_conf", "/maps/tools/SimpleTraversabilityConfig").
+        doc ("Configuration parameters for the traversability transformation.
+              Refer to the configs documentation for more details.")
 
     port_driven
 end
 
-task_context "Grassfire" do
-    subclasses("Common")
+task_context "Grassfire", subclasses: "Common" do
     needs_configuration
-
-    property("config", "/envire/TraversabilityGrassfire/Config").
-        doc "configuration parameters for the traversability transformation"
-
-    property("growTerrainRadius", "double", 0.0).
-        doc "If this number is bigger than 0, all terrains will be grown by this value. Terrains with better traversabilty will be overwritten by terrains with with worse terrains"
 
     transformer do
-        transformation("body_center", "mls_map")
-        max_latency(0.1)
+        transform "body_center", "map"
+        max_latency 0.5
     end
+
+    property("config", "/maps/tools/TraversabilityGrassfireConfig").
+        doc ("Configuration parameters for the traversability transformation.
+              Refer to the configs documentation for more details.")
 
     port_driven
 end
